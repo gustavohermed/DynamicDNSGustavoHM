@@ -44,19 +44,19 @@ echo ">>> Configuring named.conf.local"
 cat > /etc/bind/named.conf.local <<EOF
 zone "example.test" IN {
     type master;
-    file "/etc/bind/db.example.test";
+    file "/var/lib/bind/db.example.test";
     allow-update { key "ddns-key"; };
 };
 
 zone "58.168.192.in-addr.arpa" IN {
     type master;
-    file "/etc/bind/db.192";
+    file "/var/lib/bind/db.192";
     allow-update { key "ddns-key"; };
 };
 EOF
 
 echo ">>> Creating forward zone file"
-cat > /etc/bind/db.example.test <<EOF
+cat > /var/lib/bind/db.example.test <<EOF
 $TTL    604800
 @       IN      SOA     dns.example.test. root.example.test. (
                               2         ; Serial
@@ -71,7 +71,7 @@ dhcp    IN      A       192.168.58.20
 EOF
 
 echo ">>> Creating reverse zone file"
-cat > /etc/bind/db.192 <<EOF
+cat > /var/lib/bind/db.192 <<EOF
 $TTL    604800
 @       IN      SOA     dns.example.test. root.example.test. (
                               2         ; Serial
@@ -86,8 +86,8 @@ $TTL    604800
 EOF
 
 echo ">>> Setting permissions for zone files"
-chown bind:bind /etc/bind/db.example.test
-chown bind:bind /etc/bind/db.192
+chown bind:bind /var/lib/bind/db.example.test
+chown bind:bind /var/lib/bind/db.192
 
 echo ">>> Restarting BIND9 service"
 systemctl restart bind9

@@ -1,26 +1,26 @@
+# Vagrantfile - aprovisionamiento con ansible_local (BIND9 + ISC-DHCP + client)
 Vagrant.configure("2") do |config|
-  config.vm.box = "ubuntu/focal64"
+  config.vm.box = "debian/bulleseye64"
 
-  # DNS Server
+  # DNS
   config.vm.define "dns" do |dns|
     dns.vm.hostname = "dns"
     dns.vm.network "private_network", ip: "192.168.58.10"
-    dns.vm.provision "shell", path: "dns.sh"
-  end
+    end
 
-  # DHCP Server
+  # DHCP
   config.vm.define "dhcp" do |dhcp|
     dhcp.vm.hostname = "dhcp"
     dhcp.vm.network "private_network", ip: "192.168.58.20"
-    dhcp.vm.provision "shell", path: "dhcp.sh"
-  end
 
-  # Client Machine
+    end
+
+
+  # Client (DHCP)
   config.vm.define "client" do |client|
     client.vm.hostname = "client"
-    # This machine will get its IP from the DHCP server
     client.vm.network "private_network", type: "dhcp"
-    client.vm.provision "shell", path: "client.sh"
+    end
   end
-end
+
 

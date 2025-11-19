@@ -1,0 +1,71 @@
+---
+- name: Simple DHCP provisioning (ansible_local style)
+  hosts: dhcp
+  become: true
+
+  vars:
+    src_ddns_key: "ddns.key"
+    src_dhcpd_conf: "dhcpd.conf"
+
+    dst_ddns_key: "/etc/dhcp/ddns.key"
+    dst_dhcpd_conf: "/etc/dhcp/dhcpd.conf"
+    dst_default: "/etc/default/isc-dhcp-server"
+
+    dhcp_interface: "eth1"
+
+  tasks:
+    - name: Actualizar caché apt
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Instalar isc-dhcp-server
+      apt:
+        name: isc-dhcp-server
+        state: present
+
+    - name: Forzar interfaz en /etc/default/isc-dhcp-server
+      copy:
+        dest: "{{ dst_default }}"
+        content: "INTERFACESv4=\"{{ dhcp_interface }}\"\n"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Copiar TSIG key desde /vagrant al sistema DHCP
+      copy:
+        src: "{{ src_ddns_key }}"
+        dest: "{{ dst_ddns_key }}"
+        owner: root
+        group: root
+        mode: "0600"
+      register: copy_key
+      failed_when: copy_key is failed
+
+    - name: Copiar dhcpd.conf al destino
+      copy:
+        src: "{{ src_dhcpd_conf }}"
+        dest: "{{ dst_dhcpd_conf }}"
+        owner: root
+        group: root
+        mode: "0644"
+      notify: restart_dhcp
+
+    - name: Comprobar sintaxis de dhcpd.conf
+      command: dhcpd -t -cf {{ dst_dhcpd_conf }}
+      register: dhcpd_test
+      changed_when: false
+      failed_when: dhcpd_test.rc != 0
+
+    - name: Asegurar que el servicio isc-dhcp-server esté activo
+      service:
+        name: isc-dhcp-server
+        state: restarted
+        enabled: yes
+
+  handlers:
+    - name: restart_dhcp
+      service:
+        name: isc-dhcp-server
+        state: restarted
+        enabled: yes

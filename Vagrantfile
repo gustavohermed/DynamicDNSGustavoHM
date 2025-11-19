@@ -5,25 +5,22 @@ Vagrant.configure("2") do |config|
   # DNS
   config.vm.define "dns" do |dns|
     dns.vm.hostname = "dns"
-    dns.vm.network "private_network", ip: "192.168.58.10"
+    dns.vm.network "private_network", ip: "192.168.58.10", virtualbox_intnet: "internal"
 
-    dns.vm.provision "ansible_local" do |ansible|
-      ansible.playbook = "dnsplaybook.yaml"
-    end
   end
 
   # DHCP
   config.vm.define "dhcp" do |dhcp|
     dhcp.vm.hostname = "dhcp"
-    dhcp.vm.network "private_network", ip: "192.168.58.20"
+    dhcp.vm.network "private_network", ip: "192.168.58.20", virtualbox_intnet: "internal"
 
-    end
+  end
 
 
   # Client (DHCP)
   config.vm.define "client" do |client|
     client.vm.hostname = "client"
-    client.vm.network "private_network", type: "dhcp"
+    client.vm.network "private_network", type: "dhcp", virtualbox_intnet: "internal"
     end
   end
 
